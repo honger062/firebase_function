@@ -1,20 +1,10 @@
 const functions = require("firebase-functions");
-
-const express = require("express");
 const admin = require("firebase-admin");
 admin.initializeApp();
+
+const express = require("express");
 const apiRouter = express.Router();
 const app = express();
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest(function(request, response) {
-//     response.send("Hello from Firebase!");
-// });
-
-// const express = require("express");
-// const cors = require("cors")({ origin: true });
-// const app = express();
 
 apiRouter.post("/", function (req, res) {
   let responseBody;
@@ -37,5 +27,3 @@ apiRouter.post("/", function (req, res) {
 app.use(apiRouter);
 
 exports.middleWare = functions.https.onRequest(app);
-
-// exports.apiRouter = apiRouter.apiRouter;
