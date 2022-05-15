@@ -11,7 +11,7 @@ exports.notice = functions
             .get('https://www.sungkyul.ac.kr/sungkyulice/4167/subview.do')
             .then(html => {
                 const tableCrawling = new Object();
-                //eslint-disable-next-line id-length
+
                 const $ = cheerio.load(html.data);
                 /*게시물의 이름, 날짜, 주소를 각각 추출 및 오브젝트 변수에 저장*/
                 for (let index = 1; index <= 5; index++) {

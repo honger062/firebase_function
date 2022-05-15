@@ -1,68 +1,143 @@
-const express = require("express");
+const admin = require('firebase-admin');
+// const functions = require('firebase-functions');
+const express = require('express');
 const router = express.Router();
-const admin = require("firebase-admin");
-const functions = require("firebase-functions");
 
-router.post("/", async function(req, res) {
-  // console.log(req.body.userRequest.user.id);
-  const userRequest = req.body.userRequest.utterance; //사용자 요청문
+router.post("/",async function (req, res) {
+    
+  const userRequest = req.body.userRequest.utterance;
+  console.log(req.body.userRequest.user.id);
   let responseBody;
 
-  switch (userRequest){
-    
-    case "테스트" :
-    responseBody = {
-      "version": "2.0",
-      "template": {
-        "outputs": [
-          {
-            "listCard": {
-              "header": {
-                "title": "챗봇 관리자센터를 소개합니다.",
-              },
-              "items": [
-                {
-                  "title": "챗봇 관리자센터",
-                  "description": "새로운 AI의 내일과 일상의 변화",
-                  "imageUrl": "http://k.kakaocdn.net/dn/APR96/btqqH7zLanY/kD5mIPX7TdD2NAxgP29cC0/1x1.jpg",
-                  "link": {
-                    "web": "https://namu.wiki/w/%EB%9D%BC%EC%9D%B4%EC%96%B8(%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%94%84%EB%A0%8C%EC%A6%88)",
-                  },
-                },
-                {
-                  "title": "챗봇 관리자센터",
-                  "description": "카카오톡 채널 챗봇 만들기",
-                  "imageUrl": "http://k.kakaocdn.net/dn/N4Epz/btqqHCfF5II/a3kMRckYml1NLPEo7nqTmK/1x1.jpg",
-                  "link": {
-                    "web": "https://namu.wiki/w/%EB%AC%B4%EC%A7%80(%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%94%84%EB%A0%8C%EC%A6%88)",
-                  },
-                },
-                {
-                  "title": "Kakao i Voice Service",
-                  "description": "보이스봇 / KVS 제휴 신청하기",
-                  "imageUrl": "http://k.kakaocdn.net/dn/bE8AKO/btqqFHI6vDQ/mWZGNbLIOlTv3oVF1gzXKK/1x1.jpg",
-                  "link": {
-                    "web": "https://namu.wiki/w/%EC%96%B4%ED%94%BC%EC%B9%98",
-                  },
-                },
-              ],
-              "buttons": [
-                {
-                  "label": "구경가기",
-                  "action": "webLink",
-                  "webLinkUrl": "https://namu.wiki/w/%EC%B9%B4%EC%B9%B4%EC%98%A4%ED%94%84%EB%A0%8C%EC%A6%88",
-                },
-              ],
-            },
-          },
-        ],
-      },
-    };
-    res
-    .status(201)
-    .send(responseBody); //응답 상태 코드와 내용 전송
-    }
-  });
+  let titleResult,
+      dateResult,
+      urlResult;
+  let image; // 이미지 링크 저장
 
-// eslint-disable-next-line linebreak-style
+  let items = []; //게시판 별 value 저장
+
+  switch (userRequest) {
+      case "학과공지사항" :
+
+          [titleResult, dateResult, urlResult] = await getData('notice'); //DB로부터 해당 게시물의 데이터 get
+
+          titleResult.forEach((value, index) => {
+              items.push({
+                  "title": value,
+                  "description": dateResult[index],
+                  "link": {
+                      "web": urlResult[index]
+                  }
+              });
+          });
+          console.log(titleResult, dateResult, urlResult);
+          responseBody = {
+              "version": "2.0",
+              "template": {
+                  outputs: [
+                      {
+                          listCard: { //리스트 카드 뷰 블록으로 출력
+                              "header": {
+                                  "title": "학과공지사항"
+                              },
+                              "items": items,
+                              "buttons": [
+                                  { 
+                                      "label": "학과공지사항 페이지",
+                                      "action": "webLink",
+                                      "webLinkUrl": "https://www.sungkyul.ac.kr/sungkyulice/4167/subview.do"
+                                  }
+                              ]
+                          }
+                      }
+                  ]
+              }
+          };
+          break;
+          
+          case "이수체계":
+              {
+                  image = await getImg('completionSystem');
+                  // console.log(image);
+                  const imgTitle = ['올해 이수체계도', '올해 설계-이수체계도'];
+                  /* 응답 횟수만큼 이미지 블록 뷰를 생성*/
+                  image.forEach((value, index) => {
+                      items.push({
+                          simpleImage: {
+                              "imageUrl": value,
+                              "altText": imgTitle[index]
+                            }
+                        });
+                    });
+                    // console.log(items);
+                responseBody = {
+                    version: "2.0",
+                    template: {
+                        /* 뷰 및 바로가기 출력*/
+                        outputs: items,
+                    }
+                };
+                break;
+            }
+            res.status(200).send(responseBody);
+    }
+        
+  async function getData(params) { //게시판 DB 검색 쿼리문 처리 함수
+    let title = new Array();
+    let date = new Array();
+    let url = new Array();
+
+    for (let index = 1; index <= 5; index++) {
+        await admin
+            .database()
+            .ref(params)
+            .child(index)
+            .once('value')
+            .then(snapshot => {
+                title.push(snapshot.val().title);
+                date.push(snapshot.val().date);
+                url.push(snapshot.val().url);
+            })
+            .catch(err => {
+                console.error('Error from public_service getData :', err);
+            });
+    }
+    return [title, date, url];
+}
+
+async function getImg(params, index) { // 이미지 DB 검색 쿼리문 처리 함수
+    let imageData;
+    
+    if (index === undefined) {
+        imageData = await admin
+            .database()
+            .ref(params)
+            .child('imgUrl')
+            .once('value')
+            .then(snapshot => {
+                return snapshot.val();
+            })
+            .catch(err => {
+                console.error('Error from public_service getImg :', err);
+            });
+    } else {
+        imageData = await admin
+            .database()
+            .ref(params)
+            .child(`imgUrl/${index}`)
+            .once('value')
+            .then(snapshot => {
+                return snapshot.val();
+            })
+            .catch(err => {
+                console.error('Error from public_service getImg :', err);
+            });
+    }
+    return imageData;
+}
+  res
+  .status(201)
+  .send(responseBody); // 응답 상태 코드와 내용 전송
+});
+
 module.exports = router;
