@@ -3,11 +3,11 @@ const admin = require("firebase-admin");
 const axios = require("axios");
 const cheerio = require("cheerio");
 
-exports.notice = functions
+exports.job = functions
   .region("asia-northeast3")
   .https.onRequest((req, res) => {
     axios
-      .get("https://www.sungkyul.ac.kr/sungkyulice/4167/subview.do")
+      .get("https://www.sungkyul.ac.kr/sungkyulice/4168/subview.do")
       .then((html) => {
         const tableCrawling = new Object();
 
@@ -16,12 +16,12 @@ exports.notice = functions
         for (let index = 1; index <= 5; index++) {
           tableCrawling[index] = {
             title: $(
-              `#menu4167_obj76 > div._fnctWrap > form:nth-child(2) > div > table > tbody > tr:nth-child(${index}) > td.td-subject > a > strong`
+              `#menu4168_obj77 > div._fnctWrap > form:nth-child(2) > div > table > tbody > tr:nth-child(${index}) > td.td-subject > a > strong`
             )
               .text()
               .trim(),
             date: $(
-              "#menu4167_obj76 > div._fnctWrap > form:nth-child(2) > div > table > tbody > t" +
+              "#menu4168_obj77 > div._fnctWrap > form:nth-child(2) > div > table > tbody > t" +
                 "r:nth-child(" +
                 index +
                 ") > td.td-date"
@@ -29,7 +29,7 @@ exports.notice = functions
               .text()
               .trim(),
             url: $(
-              "#menu4167_obj76 > div._fnctWrap > form:nth-child(2) > div > table > tbody > t" +
+              "#menu4168_obj77 > div._fnctWrap > form:nth-child(2) > div > table > tbody > t" +
                 "r:nth-child(" +
                 index +
                 ") > td.td-subject > a"
@@ -45,13 +45,13 @@ exports.notice = functions
         //console.log(result);
         await admin
           .database()
-          .ref("notice/") //반환된 변수를 DB에 저장
+          .ref("job/") //반환된 변수를 DB에 저장
           .set(result);
-        console.log("notice DB input Success");
+        console.log("job DB input Success");
         res.sendStatus(201); //성공 코드 전송
       })
       .catch((err) => {
-        console.error("Error from notice : ", err);
+        console.error("Error from job : ", err);
         res.sendStatus(err.response.status); //에러 코드 전송
       });
   });

@@ -11,9 +11,18 @@ router.post("/", async function (req, res) {
   let responseBody;
 
   let titleResult, dateResult, urlResult;
-  let image; // 이미지 링크 저장
 
   let items = []; //게시판 별 value 저장
+
+  const quickReplies = [
+    {
+      // 바로가기 작성
+      messageText: "뒤로",
+      action: "block",
+      blockId: "62a3541afa834474ed73ff08",
+      label: "↩ 뒤로",
+    },
+  ];
 
   if (userFriend == true) {
     switch (userRequest) {
@@ -52,6 +61,47 @@ router.post("/", async function (req, res) {
                 },
               },
             ],
+            quickReplies: quickReplies,
+          },
+        };
+        break;
+
+      case "취업공지사항":
+        [titleResult, dateResult, urlResult] = await getData("job"); //DB로부터 해당 게시물의 데이터 get
+
+        titleResult.forEach((value, index) => {
+          items.push({
+            title: value,
+            description: dateResult[index],
+            link: {
+              web: urlResult[index],
+            },
+          });
+        });
+        console.log(titleResult, dateResult, urlResult);
+        responseBody = {
+          version: "2.0",
+          template: {
+            outputs: [
+              {
+                listCard: {
+                  //리스트 카드 뷰 블록으로 출력
+                  header: {
+                    title: "취업공지사항",
+                  },
+                  items: items,
+                  buttons: [
+                    {
+                      label: "취업공지사항 페이지",
+                      action: "webLink",
+                      webLinkUrl:
+                        "https://www.sungkyul.ac.kr/sungkyulice/4168/subview.do",
+                    },
+                  ],
+                },
+              },
+            ],
+            quickReplies: quickReplies,
           },
         };
         break;
