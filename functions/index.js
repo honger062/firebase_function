@@ -19,6 +19,7 @@ const noticeService = require("./router/notice/notice_service");
 const professor = require("./crawling/professor");
 const meal = require("./crawling/meal");
 const job = require("./crawling/job");
+const notice = require("./crawling/notice");
 
 app.use(cors());
 app.use(express.json());
@@ -38,3 +39,4 @@ exports.middleWare0509 = functions.https.onRequest(app);
 exports.professor = professor.professor;
 exports.meal = meal.meal;
 exports.job = job.job;
+exports.notice = notice.notice;
