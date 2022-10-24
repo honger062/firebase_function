@@ -18,7 +18,7 @@ router.post("/", async (req, res) => {
                 simpleImage: {
                   // 이미지 뷰 블록으로 출력
                   imageUrl:
-                    "https://www.sungkyul.ac.kr/sites/sungkyulice/images/temp_1643003744801100.png",
+                    "https://www.sungkyul.ac.kr/sites/sungkyulice/images/temp_1662014076783100.png",
                   altText: "강의실시간표",
                 },
               },
